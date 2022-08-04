@@ -154,15 +154,43 @@ services:
       PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
 
   # Comment out everything below this point if you are using an external Postgres database
+  # db:
+  #  container_name: supabase-db
+  #  image: supabase/postgres:14.1.0.21
+  #  command: postgres -c config_file=/etc/postgresql/postgresql.conf
+  #  restart: unless-stopped
+  #  ports:
+  #    - ${POSTGRES_PORT}:5432
+  #  environment:
+  #    POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #  volumes:
+  #    # - ./volumes/db/data:/var/lib/postgresql/data
+  #    - ./volumes/db/init:/docker-entrypoint-initdb.d
+
   db:
     container_name: supabase-db
-    image: supabase/postgres:14.1.0.21
-    command: postgres -c config_file=/etc/postgresql/postgresql.conf
+    image: timescale/timescaledb-ha:pg14-latest
     restart: unless-stopped
     ports:
       - ${POSTGRES_PORT}:5432
     environment:
+      POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
-      # - ./volumes/db/data:/var/lib/postgresql/data
+      - ./volumes/db/data:/var/lib/postgresql/data
       - ./volumes/db/init:/docker-entrypoint-initdb.d
+  # prometheus_postgresql_adapter:
+  #   depends_on:
+  #   - db
+  #   environment:
+  #     TS_PROM_LOG_LEVEL: debug
+  #     TS_PROM_DB_CONNECT_RETRIES: 10
+  #     TS_PROM_DB_HOST: db
+  #     TS_PROM_DB_USER: db
+  #     TS_PROM_DB_PASSWORD: ${POSTGRES_PASSWORD}
+  #     TS_PROM_DB_NAME: postgres
+  #     TS_PROM_WEB_TELEMETRY_PATH: /metrics-text
+  #   image: timescale/timescale-prometheus:latest
+  #   restart: always
+  #   ports:
+  #   - 9201:9201/tcp
